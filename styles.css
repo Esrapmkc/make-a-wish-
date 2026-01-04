@@ -10,8 +10,6 @@ body{
   overflow:hidden;
   font-family: "Nunito", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   color:var(--ui);
-
-  /* repo: bg.png */
   background: url("bg.png") center/cover no-repeat fixed;
 }
 
@@ -62,31 +60,65 @@ canvas{
   pointer-events:auto;
 }
 
-/* Make a Wish title: less fancy + moved down */
+/* Title block */
 .topTitle{
   position:absolute;
-  top:58px;                 /* ↓ moved down */
+  top:64px;           /* slightly lower */
   left:50%;
   transform:translateX(-50%);
   text-align:center;
   text-shadow: 0 10px 30px rgba(0,0,0,.65);
   z-index:6;
 }
+
+/* Make a Wish: decorative but readable */
 .wishTitle{
-  font-family:"Nunito", sans-serif;  /* less ornate */
-  font-weight: 900;
-  font-size: clamp(30px, 5.2vw, 50px);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  opacity:.98;
+  font-family: "Allura", cursive;
+  font-size: clamp(44px, 7vw, 66px);
+  font-weight: 400;
+  letter-spacing: .02em;
+  opacity: .98;
+  line-height: 1.0;
 }
+
 .wishCountdown{
-  margin-top:8px;
+  margin-top:10px;
   font-weight:900;
   font-size: clamp(14px, 2.8vw, 18px);
   opacity:.95;
 }
 
+.wishPrompt{
+  margin-top: 10px;
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: .02em;
+  opacity: 0;                  /* hidden until timer ends */
+  transform: translateY(2px);
+  transition: opacity .35s ease, transform .35s ease;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.14);
+  padding: 8px 12px;
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  display: inline-block;
+}
+
+.wishPrompt.show{
+  opacity: .96;
+  transform: translateY(0);
+}
+
+.wishPrompt.pulse{
+  animation: promptPulse 1.1s ease-in-out infinite;
+}
+
+@keyframes promptPulse{
+  0%,100%{ transform: translateY(0); }
+  50%{ transform: translateY(-1px); }
+}
+
+/* Cake */
 .cakeWrap{
   width:min(520px, 92vw);
   aspect-ratio: 900/1267;
@@ -101,7 +133,7 @@ canvas{
   -webkit-user-drag:none;
 }
 
-/* --- Envelope: more visible / premium --- */
+/* Envelope: more visible / premium */
 .envelope{
   position:absolute;
   left:50%;
