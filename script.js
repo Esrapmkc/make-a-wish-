@@ -175,7 +175,6 @@ function spawnConfetti() {
 function drawSparkles() {
   sCtx.clearRect(0, 0, innerWidth, innerHeight);
 
-  // gentle bloom
   sCtx.save();
   sCtx.globalAlpha = 0.22;
   sCtx.fillStyle = "#ffffff";
@@ -270,10 +269,7 @@ function drawFx() {
 /* --- Origin point near top of cake --- */
 function getCakeOrigin() {
   const r = cakeImg.getBoundingClientRect();
-  return {
-    x: r.left + r.width * 0.52,
-    y: r.top + r.height * 0.46
-  };
+  return { x: r.left + r.width * 0.52, y: r.top + r.height * 0.46 };
 }
 
 /* --- Countdown (guaranteed) --- */
@@ -284,10 +280,8 @@ function startCountdown() {
   document.body.classList.remove("show-envelope", "opening");
   helperText.textContent = "Your surprise will appear when the timer ends…";
 
-  if (wishPrompt) {
-    wishPrompt.textContent = "";
-    wishPrompt.classList.remove("show", "pulse");
-  }
+  // prompt is visible at start
+  if (wishPrompt) wishPrompt.classList.remove("hide");
 
   if (countdownTimer) clearInterval(countdownTimer);
 
@@ -306,12 +300,6 @@ function startCountdown() {
     if (t <= 0) {
       clearInterval(countdownTimer);
       countdownTimer = null;
-
-      if (wishPrompt) {
-        wishPrompt.textContent = "Blow on the candles :)";
-        wishPrompt.classList.add("show", "pulse");
-      }
-
       revealEnvelope();
     }
   }, 1000);
@@ -319,6 +307,9 @@ function startCountdown() {
 
 function revealEnvelope() {
   state = "envelope";
+
+  // When envelope appears, hide the "Blow..." prompt
+  if (wishPrompt) wishPrompt.classList.add("hide");
 
   const o = getCakeOrigin();
   spawnBurst(o.x, o.y, 1.0);
@@ -369,7 +360,6 @@ function bindControls() {
       openEnvelope();
     }
   });
-
   restartBtn.addEventListener("click", () => restart());
 }
 
@@ -386,6 +376,9 @@ function boot() {
   parseParams();
   initSparkles();
   setScene("cake");
+
+  // ensure prompt visible from the start
+  if (wishPrompt) wishPrompt.classList.remove("hide");
 
   startCountdown();
 
