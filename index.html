@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Birthday Wish Card</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <canvas id="sparkleCanvas" aria-hidden="true"></canvas>
+  <canvas id="fxCanvas" aria-hidden="true"></canvas>
+
+  <main id="stage" role="application" aria-label="Interactive birthday card">
+    <section id="cakeScene" class="scene scene--active">
+      <div class="cakeWrap" aria-hidden="true">
+        <img id="cakeImg" src="cake.svg" alt="" draggable="false" />
+        <div class="wishText" aria-hidden="true">
+          <div class="wishTitle">MAKE A WISH</div>
+          <div class="wishCountdown"><span id="countNum">5</span>s</div>
+        </div>
+
+        <!-- Flames are positioned as percentages over the cake image (so they stay ON the candles). -->
+        <div class="flames" aria-hidden="true">
+          <div class="flame" style="--x:46.11%; --y:45.90%; --d:0.00s;"></div>
+          <div class="flame" style="--x:49.44%; --y:45.50%; --d:0.08s;"></div>
+          <div class="flame" style="--x:52.78%; --y:45.30%; --d:0.15s;"></div>
+          <div class="flame" style="--x:56.11%; --y:45.15%; --d:0.22s;"></div>
+        </div>
+
+        <div id="envelope" class="envelope" role="button" tabindex="0" aria-label="Mektubu aç">
+          <div class="envShadow"></div>
+          <div class="envBack"></div>
+          <div class="envPaper"></div>
+          <div class="envFront"></div>
+          <div class="envFlap"></div>
+          <div class="envSeal" aria-hidden="true">❤</div>
+          <div class="envHint">Tıkla ✨</div>
+        </div>
+      </div>
+
+      <div class="helperText" id="helperText">Mumlar sönünce mektup gelecek…</div>
+    </section>
+
+    <section id="cardScene" class="scene">
+      <div class="cardWrap" role="group" aria-label="Kartpostal">
+        <img class="cardImg" src="card.svg" alt="Birthday card" draggable="false" />
+        <div class="cardTextBox" aria-label="Mesaj">
+          <div id="cardTo" class="cardMeta"></div>
+          <div id="cardMsg" class="cardMsg"></div>
+          <div id="cardFrom" class="cardMeta"></div>
+        </div>
+      </div>
+    </section>
+
+    <button id="restartBtn" class="restartBtn" type="button" aria-label="Yeniden başlat">
+      ↻ Restart
+    </button>
+
+    <audio id="popSound" src="pop.mp3" preload="auto"></audio>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,323 @@
+:root{
+  --bg:#050505;
+  --gold:#FFD36A;
+  --silver:#E8ECFF;
+  --ui:#ffffff;
+  --shadow: 0 18px 60px rgba(0,0,0,.55);
+}
+
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  background: radial-gradient(1200px 900px at 50% 20%, #101017 0%, var(--bg) 45%, #000 100%);
+  overflow:hidden;
+  font-family: "Nunito", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color:var(--ui);
+}
+
+canvas{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+}
+
+#sparkleCanvas{z-index:0;}
+#fxCanvas{z-index:3; pointer-events:none;}
+
+#stage{
+  position:relative;
+  z-index:2;
+  height:100%;
+  width:100%;
+  display:grid;
+  place-items:center;
+  padding:18px 14px 70px;
+}
+
+.scene{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  opacity:0;
+  transform: translateY(10px) scale(.98);
+  transition: opacity .45s ease, transform .55s ease;
+  pointer-events:none;
+}
+.scene--active{
+  opacity:1;
+  transform: translateY(0) scale(1);
+  pointer-events:auto;
+}
+
+.cakeWrap{
+  width:min(520px, 92vw);
+  aspect-ratio: 900/1267;
+  position:relative;
+  filter: drop-shadow(0 30px 70px rgba(0,0,0,.55));
+}
+#cakeImg{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  user-select:none;
+  -webkit-user-drag:none;
+}
+
+.wishText{
+  position:absolute;
+  left:50%;
+  top:40%;
+  transform:translate(-50%,-50%);
+  text-align:center;
+  pointer-events:none;
+  text-shadow: 0 10px 30px rgba(0,0,0,.6);
+}
+.wishTitle{
+  font-family:"Great Vibes", cursive;
+  font-size: clamp(38px, 6.2vw, 58px);
+  letter-spacing:.5px;
+}
+.wishCountdown{
+  margin-top:6px;
+  font-weight:800;
+  font-size: clamp(14px, 2.8vw, 18px);
+  opacity:.92;
+}
+
+.flames{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+.flame{
+  position:absolute;
+  left:var(--x);
+  top:var(--y);
+  width: clamp(14px, 2.6vw, 20px);
+  height: clamp(28px, 5.2vw, 38px);
+  transform: translate(-50%, -100%);
+  filter: drop-shadow(0 0 14px rgba(255,195,90,.65)) drop-shadow(0 0 30px rgba(255,160,70,.25));
+  opacity:1;
+  transition: opacity .55s ease, transform .55s ease, filter .55s ease;
+  animation: flameFlicker 1.2s ease-in-out infinite;
+  animation-delay: var(--d);
+}
+.flame::before,
+.flame::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius: 60% 60% 70% 70% / 70% 70% 50% 50%;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255,255,255,.95) 0 18%, rgba(255,240,180,.7) 19% 35%, rgba(255,170,50,.85) 36% 62%, rgba(255,110,40,.85) 63% 78%, rgba(0,0,0,0) 79% 100%);
+  transform: rotate(-5deg);
+}
+.flame::after{
+  inset: 18% 20% 12% 20%;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255,255,255,.95) 0 10%, rgba(255,230,150,.85) 11% 40%, rgba(255,165,60,.8) 41% 68%, rgba(0,0,0,0) 69% 100%);
+  filter: blur(.2px);
+  opacity:.9;
+}
+
+@keyframes flameFlicker{
+  0%{ transform: translate(-50%,-100%) rotate(-2deg) scale(1); opacity:.95; }
+  30%{ transform: translate(-50%,-100%) rotate(2deg) scale(1.06); opacity:1;}
+  60%{ transform: translate(-50%,-100%) rotate(-3deg) scale(.98); opacity:.9;}
+  100%{ transform: translate(-50%,-100%) rotate(-2deg) scale(1); opacity:.95;}
+}
+
+body.is-blown .flame{
+  opacity:0;
+  transform: translate(-50%,-120%) scale(.85);
+  filter: drop-shadow(0 0 0 rgba(0,0,0,0));
+}
+
+.envelope{
+  position:absolute;
+  left:50%;
+  top:56%;
+  transform: translate(-50%,-50%) scale(.92);
+  width: min(320px, 78vw);
+  height: min(210px, 50vw);
+  opacity:0;
+  pointer-events:none;
+  transition: opacity .5s ease, transform .6s cubic-bezier(.2, .9, .2, 1);
+}
+body.show-envelope .envelope{
+  opacity:1;
+  pointer-events:auto;
+  transform: translate(-50%,-50%) scale(1);
+}
+.envelope:focus-visible{
+  outline: 3px solid rgba(255,255,255,.9);
+  outline-offset: 6px;
+  border-radius: 18px;
+}
+
+.envShadow{
+  position:absolute; inset:auto 0 -10px 0;
+  height:24px;
+  background: radial-gradient(50% 100% at 50% 0%, rgba(0,0,0,.55), rgba(0,0,0,0));
+  filter: blur(2px);
+}
+.envBack{
+  position:absolute; inset:0;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,.20), rgba(255,255,255,.08));
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
+}
+.envPaper{
+  position:absolute;
+  left:12px; right:12px;
+  bottom:12px;
+  height:72%;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.75));
+  transform: translateY(18px);
+  transition: transform .55s ease;
+}
+.envFront{
+  position:absolute; inset:0;
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.20), rgba(255,255,255,.02)),
+    conic-gradient(from 140deg at 50% 50%, rgba(255,255,255,.12), rgba(255,255,255,.04), rgba(255,255,255,.12));
+  clip-path: polygon(0 38%, 50% 74%, 100% 38%, 100% 100%, 0 100%);
+}
+.envFlap{
+  position:absolute; inset:0;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.06));
+  clip-path: polygon(0 38%, 50% 8%, 100% 38%, 50% 74%);
+  transform-origin: 50% 38%;
+  transform: rotateX(0deg);
+  transition: transform .6s cubic-bezier(.2,.9,.2,1);
+}
+.envSeal{
+  position:absolute;
+  left:50%;
+  top:62%;
+  transform: translate(-50%,-50%);
+  width:44px; height:44px;
+  border-radius: 999px;
+  display:grid; place-items:center;
+  font-size: 18px;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.35), rgba(255,0,70,.22));
+  box-shadow: 0 8px 25px rgba(255,0,70,.12);
+  user-select:none;
+  opacity:.95;
+}
+.envHint{
+  position:absolute;
+  left:50%;
+  top:14px;
+  transform: translateX(-50%);
+  font-weight:800;
+  font-size: 14px;
+  letter-spacing:.3px;
+  opacity:.92;
+  text-shadow: 0 10px 30px rgba(0,0,0,.55);
+}
+
+.envelope:hover .envHint{ opacity:1; }
+.envelope:hover{ filter: drop-shadow(0 18px 45px rgba(0,0,0,.45)); }
+
+body.opening .envFlap{ transform: rotateX(160deg); }
+body.opening .envPaper{ transform: translateY(-8px); }
+body.opening .envelope{ pointer-events:none; }
+
+.helperText{
+  position:absolute;
+  bottom:86px;
+  left:50%;
+  transform: translateX(-50%);
+  font-weight:600;
+  font-size: 14px;
+  opacity:.88;
+  text-shadow: 0 10px 30px rgba(0,0,0,.7);
+  padding:10px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.10);
+  backdrop-filter: blur(6px);
+}
+
+.cardWrap{
+  width:min(520px, 92vw);
+  aspect-ratio: 800/1131;
+  position:relative;
+  filter: drop-shadow(0 26px 70px rgba(0,0,0,.65));
+}
+.cardImg{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  user-select:none;
+  -webkit-user-drag:none;
+}
+.cardTextBox{
+  position:absolute;
+  left: 10%;
+  top: 18%;
+  width: 80%;
+  height: 56%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding: 18px 18px 16px;
+  gap: 10px;
+}
+.cardMeta{
+  font-weight:800;
+  letter-spacing:.4px;
+  font-size: clamp(14px, 2.8vw, 18px);
+  opacity:.92;
+  text-shadow: 0 10px 30px rgba(0,0,0,.75);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:100%;
+}
+.cardMsg{
+  font-family:"Nunito", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-weight:700;
+  font-size: clamp(18px, 3.2vw, 26px);
+  line-height: 1.28;
+  text-shadow: 0 12px 30px rgba(0,0,0,.8);
+  white-space:pre-wrap;
+}
+
+.restartBtn{
+  position:fixed;
+  left:50%;
+  bottom:18px;
+  transform: translateX(-50%);
+  z-index:4;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.95);
+  font-weight:800;
+  padding: 12px 16px;
+  border-radius: 999px;
+  cursor:pointer;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 20px 60px rgba(0,0,0,.45);
+}
+.restartBtn:hover{ background: rgba(255,255,255,.12); }
+.restartBtn:active{ transform: translateX(-50%) translateY(1px); }
+.restartBtn:focus-visible{
+  outline: 3px solid rgba(255,255,255,.9);
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .scene, .flame, .envelope, .envFlap, .envPaper{ transition: none !important; animation: none !important; }
+}
