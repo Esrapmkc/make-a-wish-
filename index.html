@@ -7,7 +7,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&family=Allura&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -19,8 +19,11 @@
 
     <section id="cakeScene" class="scene scene--active">
       <div class="topTitle" aria-hidden="true">
-        <div class="wishTitle">MAKE A WISH</div>
+        <div class="wishTitle">Make a Wish</div>
         <div class="wishCountdown"><span id="countNum">5</span>s</div>
+
+        <!-- prompt under countdown -->
+        <div class="wishPrompt" id="wishPrompt" aria-hidden="true"></div>
       </div>
 
       <div class="cakeWrap" aria-hidden="true">
