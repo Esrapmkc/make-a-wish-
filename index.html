@@ -4,9 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Birthday Wish Card</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -14,21 +16,22 @@
   <canvas id="fxCanvas" aria-hidden="true"></canvas>
 
   <main id="stage" role="application" aria-label="Interactive birthday card">
-    <section id="cakeScene" class="scene scene--active">
-      <div class="cakeWrap" aria-hidden="true">
-        <img id="cakeImg" src="cake.svg" alt="" draggable="false" />
-        <div class="wishText" aria-hidden="true">
-          <div class="wishTitle">MAKE A WISH</div>
-          <div class="wishCountdown"><span id="countNum">5</span>s</div>
-        </div>
 
-        <!-- Flames are positioned as percentages over the cake image (so they stay ON the candles). -->
-        <div class="flames" aria-hidden="true">
-          <div class="flame" style="--x:46.11%; --y:45.90%; --d:0.00s;"></div>
-          <div class="flame" style="--x:49.44%; --y:45.50%; --d:0.08s;"></div>
-          <div class="flame" style="--x:52.78%; --y:45.30%; --d:0.15s;"></div>
-          <div class="flame" style="--x:56.11%; --y:45.15%; --d:0.22s;"></div>
-        </div>
+    <section id="cakeScene" class="scene scene--active">
+      <div class="topTitle" aria-hidden="true">
+        <div class="wishTitle">MAKE A WISH</div>
+        <div class="wishCountdown"><span id="countNum">5</span>s</div>
+      </div>
+
+      <div class="cakeWrap" aria-hidden="true">
+        <!-- Transparan pasta: cake.png -->
+        <img id="cakeImg" src="cake.png" alt="" draggable="false" />
+
+        <!-- Mum hizalama için işaretli görsel (ekranda görünmez) -->
+        <img id="markImg" src="cake_mark.png" alt="" draggable="false" hidden />
+
+        <!-- Alevler JS ile otomatik üretilecek -->
+        <div id="flames" class="flames" aria-hidden="true"></div>
 
         <div id="envelope" class="envelope" role="button" tabindex="0" aria-label="Mektubu aç">
           <div class="envShadow"></div>
