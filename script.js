@@ -25,7 +25,6 @@ const sCtx = sparkleCanvas.getContext("2d");
 const fCtx = fxCanvas.getContext("2d");
 
 const cakeImg = $("#cakeImg");
-const flamesEl = $("#flames");
 
 let state = "countdown";
 let opened = false;
@@ -101,7 +100,7 @@ function setScene(which) {
   }
 }
 
-/* --- sparkles --- */
+/* --- sparkles background --- */
 const sparkles = [];
 function initSparkles() {
   sparkles.length = 0;
@@ -120,7 +119,7 @@ function initSparkles() {
   }
 }
 
-/* --- FX --- */
+/* --- FX particles --- */
 const fx = [];
 function spawnBurst(x, y, strength = 1) {
   const n = Math.floor(110 * strength);
@@ -175,6 +174,7 @@ function spawnConfetti() {
 function drawSparkles() {
   sCtx.clearRect(0, 0, innerWidth, innerHeight);
 
+  // gentle bloom
   sCtx.save();
   sCtx.globalAlpha = 0.22;
   sCtx.fillStyle = "#ffffff";
@@ -266,42 +266,22 @@ function drawFx() {
   }
 }
 
-/* --- Flames (positions for your cake.svg) --- */
-function buildFlames() {
-  flamesEl.innerHTML = "";
-  const pts = [
-    { x: 46.2, y: 45.8 },
-    { x: 49.6, y: 45.4 },
-    { x: 53.0, y: 45.2 },
-    { x: 56.2, y: 45.1 }
-  ];
-
-  pts.forEach((p, idx) => {
-    const flame = document.createElement("div");
-    flame.className = "flame";
-    flame.style.setProperty("--x", `${p.x}%`);
-    flame.style.setProperty("--y", `${p.y}%`);
-    flame.style.setProperty("--d", `${(idx * 0.08).toFixed(2)}s`);
-    flamesEl.appendChild(flame);
-  });
-
-  return pts;
-}
-
-function getCandleOrigin(points) {
+/* --- Origin point for burst near cake top --- */
+function getCakeOrigin() {
   const r = cakeImg.getBoundingClientRect();
-  const avgX = points.reduce((s, p) => s + p.x, 0) / points.length;
-  const avgY = points.reduce((s, p) => s + p.y, 0) / points.length;
-  return { x: r.left + r.width * (avgX / 100), y: r.top + r.height * (avgY / 100) };
+  return {
+    x: r.left + r.width * 0.52,
+    y: r.top + r.height * 0.46
+  };
 }
 
 /* --- Countdown (guaranteed) --- */
-function startCountdown(points) {
+function startCountdown() {
   state = "countdown";
   opened = false;
 
-  document.body.classList.remove("is-blown", "show-envelope", "opening");
-  helperText.textContent = "The letter will appear when the candles go out…";
+  document.body.classList.remove("show-envelope", "opening");
+  helperText.textContent = "Your surprise will appear when the timer ends…";
 
   if (countdownTimer) clearInterval(countdownTimer);
 
@@ -313,26 +293,26 @@ function startCountdown(points) {
     if (t >= 0) countNum.textContent = String(t);
 
     if (t > 0) {
-      const o = getCandleOrigin(points);
-      spawnBurst(o.x, o.y, 0.10);
+      const o = getCakeOrigin();
+      spawnBurst(o.x, o.y, 0.08);
     }
 
     if (t <= 0) {
       clearInterval(countdownTimer);
       countdownTimer = null;
-      blowOut(points);
+      revealEnvelope();
     }
   }, 1000);
 }
 
-function blowOut(points) {
+function revealEnvelope() {
   state = "envelope";
-  document.body.classList.add("is-blown");
 
-  const origin = getCandleOrigin(points);
-  spawnBurst(origin.x, origin.y, 1.0);
-  spawnBurst(origin.x + 18, origin.y + 6, 0.75);
-  spawnBurst(origin.x - 18, origin.y + 8, 0.75);
+  // "blow" sparkle burst
+  const o = getCakeOrigin();
+  spawnBurst(o.x, o.y, 1.0);
+  spawnBurst(o.x + 18, o.y + 6, 0.75);
+  spawnBurst(o.x - 18, o.y + 8, 0.75);
 
   setTimeout(() => {
     document.body.classList.add("show-envelope");
@@ -340,7 +320,7 @@ function blowOut(points) {
   }, 520);
 }
 
-function openEnvelope(points) {
+function openEnvelope() {
   if (opened || state !== "envelope") return;
   opened = true;
 
@@ -363,22 +343,23 @@ function showCard() {
   requestAnimationFrame(() => fitTextToBox(cardMsg, $(".cardTextBox"), 14, 28));
 }
 
-function restart(points) {
+function restart() {
   fx.length = 0;
   setScene("cake");
-  startCountdown(points);
+  startCountdown();
 }
 
 /* --- Controls --- */
-function bindControls(points) {
-  envelope.addEventListener("click", () => openEnvelope(points));
+function bindControls() {
+  envelope.addEventListener("click", () => openEnvelope());
   envelope.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      openEnvelope(points);
+      openEnvelope();
     }
   });
-  restartBtn.addEventListener("click", () => restart(points));
+
+  restartBtn.addEventListener("click", () => restart());
 }
 
 /* --- Loop --- */
@@ -395,8 +376,7 @@ function boot() {
   initSparkles();
   setScene("cake");
 
-  const points = buildFlames();
-  startCountdown(points);
+  startCountdown();
 
   // iOS audio unlock
   window.addEventListener("pointerdown", () => {
@@ -405,7 +385,7 @@ function boot() {
     popSound.currentTime = 0;
   }, { once: true });
 
-  bindControls(points);
+  bindControls();
   loop();
 }
 
