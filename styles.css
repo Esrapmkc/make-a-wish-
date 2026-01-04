@@ -11,11 +11,10 @@ body{
   font-family: "Nunito", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   color:var(--ui);
 
-  /* SENİN ARKAPLAN */
+  /* Repo’ndaki isim: bg.png */
   background: url("bg.png") center/cover no-repeat fixed;
 }
 
-/* arka plana hafif vignette (daha estetik) */
 body::before{
   content:"";
   position:fixed;
@@ -98,7 +97,7 @@ canvas{
   -webkit-user-drag:none;
 }
 
-/* Flames container */
+/* Flames */
 .flames{
   position:absolute;
   inset:0;
@@ -149,7 +148,6 @@ canvas{
   100%{ transform: translate(-50%,-100%) rotate(-2deg) scale(1); opacity:.95;}
 }
 
-/* Mumlar sönünce */
 body.is-blown .flame{
   opacity:0;
   transform: translate(-50%,-120%) scale(.85);
@@ -307,7 +305,7 @@ body.opening .envelope{ pointer-events:none; }
 }
 .cardMsg{
   font-weight:700;
-  font-size: 26px; /* JS küçültebilir */
+  font-size: 26px;
   line-height: 1.28;
   text-shadow: 0 12px 30px rgba(0,0,0,.8);
   white-space:pre-wrap;
