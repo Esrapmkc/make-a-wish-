@@ -10,6 +10,7 @@ const $ = (sel) => document.querySelector(sel);
 const cakeScene = $("#cakeScene");
 const cardScene = $("#cardScene");
 const countNum = $("#countNum");
+const wishPrompt = $("#wishPrompt");
 const helperText = $("#helperText");
 const envelope = $("#envelope");
 const restartBtn = $("#restartBtn");
@@ -266,7 +267,7 @@ function drawFx() {
   }
 }
 
-/* --- Origin point for burst near cake top --- */
+/* --- Origin point near top of cake --- */
 function getCakeOrigin() {
   const r = cakeImg.getBoundingClientRect();
   return {
@@ -282,6 +283,11 @@ function startCountdown() {
 
   document.body.classList.remove("show-envelope", "opening");
   helperText.textContent = "Your surprise will appear when the timer ends…";
+
+  if (wishPrompt) {
+    wishPrompt.textContent = "";
+    wishPrompt.classList.remove("show", "pulse");
+  }
 
   if (countdownTimer) clearInterval(countdownTimer);
 
@@ -300,6 +306,12 @@ function startCountdown() {
     if (t <= 0) {
       clearInterval(countdownTimer);
       countdownTimer = null;
+
+      if (wishPrompt) {
+        wishPrompt.textContent = "Blow on the candles :)";
+        wishPrompt.classList.add("show", "pulse");
+      }
+
       revealEnvelope();
     }
   }, 1000);
@@ -308,7 +320,6 @@ function startCountdown() {
 function revealEnvelope() {
   state = "envelope";
 
-  // "blow" sparkle burst
   const o = getCakeOrigin();
   spawnBurst(o.x, o.y, 1.0);
   spawnBurst(o.x + 18, o.y + 6, 0.75);
