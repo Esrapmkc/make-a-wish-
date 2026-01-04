@@ -1,13 +1,8 @@
-\
 /**
- * Birthday Wish Card — GitHub Pages friendly (HTML/CSS/JS only).
- *
- * URL params (optional):
+ * URL params:
  *  - to=Name
  *  - from=Name
- *  - msg=Your%20message%20here%0ASecond%20line...
- *
- * Tip: use \n (new line) to make it easier to fit 5+ sentences.
+ *  - msg=Line1|Line2|Line3 ...  (| = newline)
  */
 
 const $ = (sel) => document.querySelector(sel);
@@ -30,8 +25,11 @@ const fxCanvas = $("#fxCanvas");
 const sCtx = sparkleCanvas.getContext("2d");
 const fCtx = fxCanvas.getContext("2d");
 
-let rafId = null;
-let timer = null;
+const cakeImg = $("#cakeImg");
+const markImg = $("#markImg");
+const flamesEl = $("#flames");
+
+let timerRaf = null;
 let state = "countdown"; // countdown -> envelope -> card
 let opened = false;
 
@@ -51,15 +49,19 @@ function resize() {
 }
 window.addEventListener("resize", resize);
 
+/* -------- Message -------- */
 function parseParams() {
   const p = new URLSearchParams(location.search);
   const to = (p.get("to") || "").trim();
   const from = (p.get("from") || "").trim();
 
-  // Support: msg can include \n. Also allow | as newline (easy for Etsy links).
   let msg = p.get("msg");
   if (!msg) {
-    msg = "Happy Birthday!\nMay your day be full of joy and laughter.\nI hope all your dreams come true this year.\nYou deserve the very best—today and always.\nSo grateful to have you in my life.";
+    msg =
+      "Happy Birthday!|May your day be full of joy and laughter.|" +
+      "I hope all your dreams come true this year.|" +
+      "You deserve the very best—today and always.|" +
+      "So grateful to have you in my life.";
   }
   msg = msg.replaceAll("|", "\n");
 
@@ -67,26 +69,23 @@ function parseParams() {
   cardFrom.textContent = from ? `FROM: ${from}` : "";
   cardMsg.textContent = msg;
 
-  fitTextToBox(cardMsg, $(".cardTextBox"), 14, 28);
+  // 5+ cümle taşmasın: otomatik küçült
+  requestAnimationFrame(() => fitTextToBox(cardMsg, $(".cardTextBox"), 14, 28));
 }
 
 function fitTextToBox(textEl, boxEl, minPx, maxPx) {
-  // Shrink-to-fit so 5+ sentences always stay inside the card.
   let size = maxPx;
   textEl.style.fontSize = size + "px";
 
-  const fits = () => {
-    // Use scrollHeight to detect overflow.
-    return boxEl.scrollHeight <= boxEl.clientHeight + 1;
-  };
+  const fits = () => boxEl.scrollHeight <= boxEl.clientHeight + 1;
 
-  // First, try max; then shrink.
   while (!fits() && size > minPx) {
     size -= 1;
     textEl.style.fontSize = size + "px";
   }
 }
 
+/* -------- Scene -------- */
 function setScene(which) {
   if (which === "cake") {
     cakeScene.classList.add("scene--active");
@@ -105,86 +104,86 @@ function safePlay(audioEl) {
   } catch {}
 }
 
-/* Sparkles (gold + silver, visible and twinkly) */
+/* -------- Sparkles (background) -------- */
 const sparkles = [];
 function initSparkles() {
   sparkles.length = 0;
-  const count = Math.floor(Math.min(210, Math.max(110, innerWidth * innerHeight / 12000)));
+  const count = Math.floor(Math.min(280, Math.max(160, innerWidth * innerHeight / 9000)));
   for (let i = 0; i < count; i++) {
     sparkles.push({
       x: Math.random() * innerWidth,
       y: Math.random() * innerHeight,
-      r: 0.7 + Math.random() * 1.6,
-      a: 0.15 + Math.random() * 0.6,
+      r: 0.8 + Math.random() * 1.8,
+      a: 0.25 + Math.random() * 0.65,
       t: Math.random() * Math.PI * 2,
-      sp: 0.006 + Math.random() * 0.02,
+      sp: 0.008 + Math.random() * 0.022,
       col: Math.random() < 0.55 ? golds[(Math.random() * golds.length) | 0] : silvers[(Math.random() * silvers.length) | 0],
-      glint: Math.random() < 0.35
+      glint: Math.random() < 0.45
     });
   }
 }
 
-/* FX particles (burst + confetti) */
+/* -------- FX particles -------- */
 const fx = [];
 function spawnBurst(x, y, strength = 1) {
-  const n = Math.floor(90 * strength);
+  const n = Math.floor(110 * strength);
   for (let i = 0; i < n; i++) {
     const ang = Math.random() * Math.PI * 2;
-    const sp = (1.2 + Math.random() * 4.2) * strength;
+    const sp = (1.4 + Math.random() * 4.6) * strength;
     const col = Math.random() < 0.6 ? golds[(Math.random() * golds.length) | 0] : silvers[(Math.random() * silvers.length) | 0];
     fx.push({
       kind: "spark",
       x, y,
       vx: Math.cos(ang) * sp,
-      vy: Math.sin(ang) * sp - 0.5,
-      r: 0.9 + Math.random() * 2.6,
+      vy: Math.sin(ang) * sp - 0.6,
+      r: 1.0 + Math.random() * 2.8,
       a: 1,
-      life: 55 + (Math.random() * 50) | 0,
+      life: 60 + (Math.random() * 60) | 0,
       col,
-      glint: Math.random() < 0.55
+      glint: Math.random() < 0.6
     });
   }
 }
 
-function spawnConfetti(side = "both") {
-  const y = innerHeight * (0.35 + Math.random() * 0.2);
+function spawnConfetti() {
+  const y = innerHeight * (0.36 + Math.random() * 0.2);
   const leftX = -10;
   const rightX = innerWidth + 10;
 
-  const makePiece = (x0, dir) => {
-    const n = 120;
+  const makeSide = (x0, dir) => {
+    const n = 130;
     for (let i = 0; i < n; i++) {
       const col = Math.random() < 0.5 ? golds[(Math.random() * golds.length) | 0] : silvers[(Math.random() * silvers.length) | 0];
       fx.push({
         kind: "confetti",
         x: x0,
-        y: y + (Math.random() * 160 - 80),
-        vx: (dir * (4 + Math.random() * 6)) + (Math.random() * 1.2),
-        vy: -2 - Math.random() * 4,
-        w: 6 + Math.random() * 8,
+        y: y + (Math.random() * 170 - 85),
+        vx: (dir * (4.2 + Math.random() * 6.3)) + (Math.random() * 1.2),
+        vy: -2.2 - Math.random() * 4.2,
+        w: 6 + Math.random() * 9,
         h: 2 + Math.random() * 6,
         rot: Math.random() * Math.PI,
         vr: (Math.random() * 0.25 - 0.125),
         a: 1,
-        life: 150 + (Math.random() * 60) | 0,
+        life: 160 + (Math.random() * 70) | 0,
         col
       });
     }
   };
 
-  if (side === "left" || side === "both") makePiece(leftX, 1);
-  if (side === "right" || side === "both") makePiece(rightX, -1);
+  makeSide(leftX, 1);
+  makeSide(rightX, -1);
 }
 
 function drawSparkles() {
   sCtx.clearRect(0, 0, innerWidth, innerHeight);
 
-  // Soft bloom glow behind sparkles (for visibility).
+  // daha görünür "bloom"
   sCtx.save();
-  sCtx.globalAlpha = 0.18;
+  sCtx.globalAlpha = 0.22;
   sCtx.fillStyle = "#ffffff";
   sCtx.beginPath();
-  sCtx.arc(innerWidth * 0.5, innerHeight * 0.38, Math.min(innerWidth, innerHeight) * 0.55, 0, Math.PI * 2);
+  sCtx.arc(innerWidth * 0.5, innerHeight * 0.42, Math.min(innerWidth, innerHeight) * 0.60, 0, Math.PI * 2);
   sCtx.fill();
   sCtx.restore();
 
@@ -197,19 +196,18 @@ function drawSparkles() {
     sCtx.globalAlpha = a;
     sCtx.fillStyle = sp.col;
     sCtx.beginPath();
-    sCtx.arc(sp.x, sp.y, sp.r * (0.85 + pulse * 0.6), 0, Math.PI * 2);
+    sCtx.arc(sp.x, sp.y, sp.r * (0.85 + pulse * 0.7), 0, Math.PI * 2);
     sCtx.fill();
 
-    // Glint cross (sparkly look).
     if (sp.glint) {
-      sCtx.globalAlpha = a * 0.7;
+      sCtx.globalAlpha = a * 0.75;
       sCtx.strokeStyle = sp.col;
       sCtx.lineWidth = 1;
       sCtx.beginPath();
-      sCtx.moveTo(sp.x - 5, sp.y);
-      sCtx.lineTo(sp.x + 5, sp.y);
-      sCtx.moveTo(sp.x, sp.y - 5);
-      sCtx.lineTo(sp.x, sp.y + 5);
+      sCtx.moveTo(sp.x - 6, sp.y);
+      sCtx.lineTo(sp.x + 6, sp.y);
+      sCtx.moveTo(sp.x, sp.y - 6);
+      sCtx.lineTo(sp.x, sp.y + 6);
       sCtx.stroke();
     }
     sCtx.restore();
@@ -229,7 +227,7 @@ function drawFx() {
 
     if (p.kind === "spark") {
       p.vx *= 0.986;
-      p.vy = p.vy * 0.986 + 0.08; // gravity
+      p.vy = p.vy * 0.986 + 0.085;
       p.x += p.vx;
       p.y += p.vy;
       p.a *= 0.985;
@@ -246,15 +244,14 @@ function drawFx() {
         fCtx.strokeStyle = p.col;
         fCtx.lineWidth = 1;
         fCtx.beginPath();
-        fCtx.moveTo(p.x - 6, p.y);
-        fCtx.lineTo(p.x + 6, p.y);
-        fCtx.moveTo(p.x, p.y - 6);
-        fCtx.lineTo(p.x, p.y + 6);
+        fCtx.moveTo(p.x - 7, p.y);
+        fCtx.lineTo(p.x + 7, p.y);
+        fCtx.moveTo(p.x, p.y - 7);
+        fCtx.lineTo(p.x, p.y + 7);
         fCtx.stroke();
       }
       fCtx.restore();
     } else {
-      // confetti
       p.vx *= 0.995;
       p.vy = p.vy * 0.992 + 0.12;
       p.x += p.vx;
@@ -273,76 +270,209 @@ function drawFx() {
   }
 }
 
-/* Timeline */
-function startCountdown() {
+/* -------- Candle auto-detect from cake_mark.png --------
+   mark görselindeki kırmızı işaretleri yakalayıp alevleri otomatik yerleştirir.
+*/
+async function detectCandlePoints() {
+  await waitForImage(markImg);
+
+  const targetW = 320; // küçültüp tarıyoruz (hızlı)
+  const scale = targetW / markImg.naturalWidth;
+  const targetH = Math.round(markImg.naturalHeight * scale);
+
+  const off = document.createElement("canvas");
+  off.width = targetW;
+  off.height = targetH;
+  const ctx = off.getContext("2d");
+  ctx.drawImage(markImg, 0, 0, targetW, targetH);
+
+  const img = ctx.getImageData(0, 0, targetW, targetH);
+  const data = img.data;
+
+  const mask = new Uint8Array(targetW * targetH);
+  for (let i = 0; i < targetW * targetH; i++) {
+    const r = data[i * 4 + 0];
+    const g = data[i * 4 + 1];
+    const b = data[i * 4 + 2];
+    const a = data[i * 4 + 3];
+    // kırmızıyı yakala
+    if (a > 40 && r > 160 && g < 120 && b < 120) mask[i] = 1;
+  }
+
+  const visited = new Uint8Array(targetW * targetH);
+  const pts = [];
+
+  const neighbors = (idx) => {
+    const x = idx % targetW;
+    const y = (idx / targetW) | 0;
+    const res = [];
+    // 4-neighbor
+    if (x > 0) res.push(idx - 1);
+    if (x < targetW - 1) res.push(idx + 1);
+    if (y > 0) res.push(idx - targetW);
+    if (y < targetH - 1) res.push(idx + targetW);
+    return res;
+  };
+
+  for (let i = 0; i < mask.length; i++) {
+    if (!mask[i] || visited[i]) continue;
+
+    // BFS component
+    const stack = [i];
+    visited[i] = 1;
+
+    let sumX = 0, sumY = 0, count = 0;
+
+    while (stack.length) {
+      const cur = stack.pop();
+      const x = cur % targetW;
+      const y = (cur / targetW) | 0;
+
+      sumX += x;
+      sumY += y;
+      count++;
+
+      for (const nb of neighbors(cur)) {
+        if (mask[nb] && !visited[nb]) {
+          visited[nb] = 1;
+          stack.push(nb);
+        }
+      }
+    }
+
+    // küçük gürültüleri at
+    if (count > 20) {
+      const cx = sumX / count;
+      const cy = sumY / count;
+
+      // yüzde koordinata çevir (orijinal boyuta geri)
+      const px = (cx / targetW) * 100;
+      const py = (cy / targetH) * 100;
+
+      pts.push({ x: px, y: py, area: count });
+    }
+  }
+
+  // soldan sağa sırala
+  pts.sort((a, b) => a.x - b.x);
+
+  // çok yakın olanları birleştir (bazen işaret kalın olabiliyor)
+  const merged = [];
+  for (const p of pts) {
+    const last = merged[merged.length - 1];
+    if (last && Math.abs(last.x - p.x) < 1.2 && Math.abs(last.y - p.y) < 1.2) {
+      // average
+      last.x = (last.x + p.x) / 2;
+      last.y = (last.y + p.y) / 2;
+      last.area += p.area;
+    } else {
+      merged.push({ ...p });
+    }
+  }
+
+  return merged;
+}
+
+function waitForImage(imgEl) {
+  return new Promise((resolve) => {
+    if (imgEl.complete && imgEl.naturalWidth) return resolve();
+    imgEl.addEventListener("load", resolve, { once: true });
+    imgEl.addEventListener("error", resolve, { once: true });
+  });
+}
+
+function buildFlames(points) {
+  flamesEl.innerHTML = "";
+
+  // Eğer hiç bulamazsa: elle 4 alev (fallback)
+  const pts = points && points.length ? points : [
+    { x: 46, y: 46 }, { x: 49.5, y: 45.5 }, { x: 53, y: 45.2 }, { x: 56, y: 45 }
+  ];
+
+  pts.forEach((p, idx) => {
+    const d = (idx * 0.08).toFixed(2) + "s";
+    const flame = document.createElement("div");
+    flame.className = "flame";
+    flame.style.setProperty("--x", `${p.x}%`);
+    flame.style.setProperty("--y", `${p.y}%`);
+    flame.style.setProperty("--d", d);
+    flamesEl.appendChild(flame);
+  });
+
+  return pts;
+}
+
+function getCandleOrigin(points) {
+  const r = cakeImg.getBoundingClientRect();
+  if (!points || !points.length) {
+    return { x: r.left + r.width * 0.52, y: r.top + r.height * 0.47 };
+  }
+  const avgX = points.reduce((s, p) => s + p.x, 0) / points.length;
+  const avgY = points.reduce((s, p) => s + p.y, 0) / points.length;
+  return { x: r.left + r.width * (avgX / 100), y: r.top + r.height * (avgY / 100) };
+}
+
+/* -------- Timeline (COUNTDOWN raf) -------- */
+function startCountdown(points) {
   state = "countdown";
   opened = false;
 
   document.body.classList.remove("is-blown", "show-envelope", "opening");
   helperText.textContent = "Mumlar sönünce mektup gelecek…";
 
-  // Start at 5, go to 0.
-  let t = 5;
-  countNum.textContent = String(t);
+  const duration = 5000;
+  const start = performance.now();
 
-  clearInterval(timer);
-  timer = setInterval(() => {
-    t -= 1;
-    if (t < 0) return;
+  cancelAnimationFrame(timerRaf);
 
-    countNum.textContent = String(t);
+  const tick = (now) => {
+    const elapsed = now - start;
+    const remain = Math.max(0, duration - elapsed);
+    const seconds = Math.ceil(remain / 1000);
 
-    // small shimmer burst each tick (subtle)
-    if (t > 0) {
-      const origin = getCandleOrigin();
-      spawnBurst(origin.x, origin.y, 0.12);
+    countNum.textContent = String(seconds);
+
+    // hafif parıltı (tik tik)
+    if (remain > 0 && seconds >= 1 && Math.abs(remain % 1000) < 18) {
+      const o = getCandleOrigin(points);
+      spawnBurst(o.x, o.y, 0.10);
     }
 
-    if (t === 0) {
-      clearInterval(timer);
-      blowOut();
+    if (remain <= 0) {
+      blowOut(points);
+      return;
     }
-  }, 1000);
+
+    timerRaf = requestAnimationFrame(tick);
+  };
+
+  timerRaf = requestAnimationFrame(tick);
 }
 
-function getCandleOrigin() {
-  const cake = $("#cakeImg");
-  const r = cake.getBoundingClientRect();
-
-  // Use the candle area (same relative coords we used for flames).
-  const cx = r.left + r.width * 0.52;
-  const cy = r.top + r.height * 0.47;
-  return { x: cx, y: cy };
-}
-
-function blowOut() {
+function blowOut(points) {
   state = "envelope";
   document.body.classList.add("is-blown");
 
-  const origin = getCandleOrigin();
-  // Big glitter burst like "blown sparkle".
+  const origin = getCandleOrigin(points);
   spawnBurst(origin.x, origin.y, 1.0);
-  spawnBurst(origin.x + 18, origin.y + 6, 0.7);
-  spawnBurst(origin.x - 18, origin.y + 8, 0.7);
+  spawnBurst(origin.x + 18, origin.y + 6, 0.75);
+  spawnBurst(origin.x - 18, origin.y + 8, 0.75);
 
-  // Slight delay then show envelope.
   setTimeout(() => {
     document.body.classList.add("show-envelope");
     helperText.textContent = "Mektuba tıkla, konfeti patlasın 🎉";
   }, 520);
 }
 
-function openEnvelope() {
+function openEnvelope(points) {
   if (opened || state !== "envelope") return;
   opened = true;
 
-  // Confetti from both sides + pop sound
-  spawnConfetti("both");
+  spawnConfetti();
   safePlay(popSound);
 
   document.body.classList.add("opening");
 
-  // Extra glitter around the envelope
   const e = envelope.getBoundingClientRect();
   spawnBurst(e.left + e.width * 0.5, e.top + e.height * 0.35, 0.55);
 
@@ -355,48 +485,62 @@ function showCard() {
   state = "card";
   setScene("card");
   helperText.textContent = "";
-  // Keep sparkles on screen; cake still visible behind because canvas is global.
+
   document.body.classList.remove("show-envelope");
   document.body.classList.remove("opening");
 
-  // Re-fit text once the card is on screen.
   requestAnimationFrame(() => fitTextToBox(cardMsg, $(".cardTextBox"), 14, 28));
 }
 
-function restart() {
-  clearInterval(timer);
+function restart(points) {
   fx.length = 0;
   setScene("cake");
-  startCountdown();
+  startCountdown(points);
 }
 
-/* Controls */
-envelope.addEventListener("click", openEnvelope);
-envelope.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" || e.key === " ") {
-    e.preventDefault();
-    openEnvelope();
-  }
-});
-restartBtn.addEventListener("click", restart);
+/* -------- Controls -------- */
+function bindControls(points) {
+  envelope.addEventListener("click", () => openEnvelope(points));
+  envelope.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openEnvelope(points);
+    }
+  });
 
-/* Main loop */
+  restartBtn.addEventListener("click", () => restart(points));
+}
+
+/* -------- Main loop -------- */
 function loop() {
   drawSparkles();
   drawFx();
-  rafId = requestAnimationFrame(loop);
+  requestAnimationFrame(loop);
 }
 
-function boot() {
+/* -------- Boot -------- */
+async function boot() {
   resize();
   parseParams();
   initSparkles();
   setScene("cake");
-  startCountdown();
-  loop();
 
-  // First interaction: unlock audio on iOS by a gentle click.
-  window.addEventListener("pointerdown", () => { safePlay(popSound); popSound.pause(); popSound.currentTime = 0; }, { once: true });
+  // Alev konumlarını işaretli görselden bul
+  await waitForImage(cakeImg);
+  const points = buildFlames(await detectCandlePoints());
+
+  // Sayaç kesin başlasın (raf ile)
+  startCountdown(points);
+
+  // Ses iOS için ilk tıkla unlock
+  window.addEventListener("pointerdown", () => {
+    safePlay(popSound);
+    popSound.pause();
+    popSound.currentTime = 0;
+  }, { once: true });
+
+  bindControls(points);
+  loop();
 }
 
 boot();
